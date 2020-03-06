@@ -1,0 +1,38 @@
+{
+  "host": "localhost",
+  "port": 3030,
+  "public": "../public/",
+  "paginate": {
+    "default": 10,
+    "max": 100
+  },
+  "authentication": {
+    "entity": "user",
+    "service": "user",
+    "secret": "EPRs7wJJBt8gDkVEU76dTbOVdbM=",
+    "authStrategies": [
+      "jwt",
+      "local"
+    ],
+    "jwtOptions": {
+      "header": {
+        "typ": "access"
+      },
+      "audience": "",
+      "issuer": "feathers",
+      "algorithm": "HS256",
+      "expiresIn": "1d"
+    },
+    "local": {
+      "usernameField": "email",
+      "passwordField": "password"
+    }
+  },
+  "postgres": "postgres://postgres:@localhost:5432/todo_calendar",
+  "web": true,
+  "seed": true,
+  "adminInfo": {
+    "email": "example@mail.com",
+    "password": "qwerty"
+  }
+}

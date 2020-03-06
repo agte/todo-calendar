@@ -1,0 +1,6 @@
+{
+  "port": 0,
+  "postgres": "postgres://postgres:@localhost:5432/todo_calendar_test",
+  "web": false,
+  "seed": false
+}
