@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "enum": ["admin", "writer", "moderator"]
+    }
+  },
+  "required": [
+    "id"
+  ],
+  "additionalProperties": false
+}

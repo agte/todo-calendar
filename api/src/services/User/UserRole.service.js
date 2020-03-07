@@ -1,33 +1,36 @@
-const { Conflict, NotFound } = require('@feathersjs/errors');
+const { BadRequest, Conflict, NotFound } = require('@feathersjs/errors');
 
 const checkRoles = require('../../hooks/authorization/checkRoles.js');
 const validate = require('../../hooks/validate.js');
 
-const createRoleSchema = require('./schemas/createRole.json');
+const addRoleSchema = require('./schemas/addRole.json');
 
-class UserRoles {
+class UserRole {
   constructor(options, app) {
     this.options = options || {};
     this.parent = 'user';
-    this.Users = app.service('user');
+    this.User = app.service('user');
   }
 
   async create({ id }, { route }) {
-    const user = await this.Users.Model.findOne({ where: { id: route.pid } });
+    const user = await this.User.Model.findOne({ where: { id: route.pid } });
     if (user.roles.includes(id)) {
       throw new Conflict('Duplicate role');
     }
-    user.roles.push(id);
+    user.roles = [...user.roles, id];
     await user.save();
     return { id };
   }
 
   async remove(id, { route }) {
-    const user = await this.Users.Model.findOne({ where: { id: route.pid } });
+    const user = await this.User.Model.findOne({ where: { id: route.pid } });
     if (!user.roles.includes(id)) {
       throw new NotFound('Role not found');
     }
-    user.roles.pull(id);
+    if (id === 'user') {
+      throw new BadRequest('Cannot remove a system role.');
+    }
+    user.roles = user.roles.filter((role) => role !== id);
     await user.save();
     return { id };
   }
@@ -37,7 +40,7 @@ const hooks = {
   before: {
     create: [
       checkRoles('admin'),
-      validate(createRoleSchema),
+      validate(addRoleSchema),
     ],
     remove: [
       checkRoles('admin'),
@@ -46,7 +49,7 @@ const hooks = {
 };
 
 module.exports = (app) => {
-  app.use('/user/:pid/roles', new UserRoles({}, app));
+  app.use('/user/:pid/roles', new UserRole({}, app));
   const service = app.service('user/:pid/roles');
   service.hooks(hooks);
   service.publish('created', () => null);

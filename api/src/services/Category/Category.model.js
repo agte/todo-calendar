@@ -11,7 +11,6 @@ module.exports = (app) => {
   const sequelizeClient = app.get('sequelizeClient');
   const Category = sequelizeClient.define('Category', Schema, {
     tableName: 'category',
-    underscored: true,
   });
 
   return Category;

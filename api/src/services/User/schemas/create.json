@@ -8,6 +8,10 @@
       "type": "string",
       "minLength": 6,
       "maxLength": 40
+    },
+    "level": {
+      "type": "string",
+      "enum": ["regional", "district", "moderator"]
     }
   },
   "required": ["email", "password"],

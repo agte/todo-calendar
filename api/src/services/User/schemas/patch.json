@@ -9,6 +9,10 @@
     "password": {
       "type": "string",
       "minLength": 6
+    },
+    "level": {
+      "type": "string",
+      "enum": ["regional", "district", "moderator"]
     }
   },
   "additionalProperties": false

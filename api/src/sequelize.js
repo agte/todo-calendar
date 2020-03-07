@@ -4,9 +4,18 @@ module.exports = function (app) {
   const connectionString = app.get('postgres');
   const sequelize = new Sequelize(connectionString, {
     dialect: 'postgres',
+    dialectOptions: {
+      useUTC: true, // for reading from database
+    },
+    timezone: '0', // for writing to database
     logging: false,
     define: {
+      underscored: true,
       freezeTableName: true,
+      syncOnAssociation: true,
+      charset: 'utf8',
+      collate: 'utf8_general_ci',
+      timestamps: false,
     },
   });
   const oldSetup = app.setup;

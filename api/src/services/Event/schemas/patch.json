@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "startDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "endDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "categoryId": {
+      "type": "integer"
+    },
+    "regionId": {
+      "type": "integer"
+    }
+  },
+  "additionalProperties": false
+}

@@ -16,13 +16,26 @@ const Schema = {
     type: DataTypes.ARRAY(DataTypes.ENUM([
       'user',
       'admin',
-      'reader',
       'writer',
       'moderator',
       // + you may meet virtual 'guest' and 'system' in middlewares, but never in the database
     ])),
     defaultValue: ['user'],
     allowNull: false,
+  },
+  level: {
+    type: DataTypes.ENUM([
+      'regional',
+      'district',
+      'federal',
+    ]),
+    allowNull: false,
+    defaultValue: 'regional',
+  },
+  regions: {
+    type: DataTypes.ARRAY(DataTypes.INTEGER),
+    allowNull: false,
+    defaultValue: [],
   },
 };
 
@@ -37,15 +50,8 @@ module.exports = (app) => {
   const User = sequelizeClient.define('User', Schema, {
     hooks,
     tableName: 'user',
-    underscored: true,
     timestamps: true,
   });
-
-  // eslint-disable-next-line no-unused-vars
-  User.associate = function (models) {
-    // Define associations here
-    // See http://docs.sequelizejs.com/en/latest/docs/associations/
-  };
 
   return User;
 };
