@@ -9,6 +9,7 @@ const configuration = require('@feathersjs/configuration');
 const express = require('@feathersjs/express');
 const feathers = require('@feathersjs/feathers');
 const socketio = require('@feathersjs/socketio');
+const { disallow } = require('feathers-hooks-common');
 
 const authentication = require('./authentication');
 const channels = require('./channels');
@@ -50,14 +51,12 @@ app.hooks({
     find: [],
     get: [],
     create: [],
-    update: [],
+    update: [disallow()],
     patch: [],
     remove: [],
   },
   after: {
-    all: [
-      toJSON(),
-    ],
+    all: [toJSON()],
     find: [],
     get: [],
     create: [],

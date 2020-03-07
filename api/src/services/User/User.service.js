@@ -1,7 +1,6 @@
 const { Service } = require('feathers-sequelize');
 const { disallow } = require('feathers-hooks-common');
 const { hashPassword, protect } = require('@feathersjs/authentication-local').hooks;
-const addAccessFilter = require('../../hooks/authorization/addAccessFilter.js');
 const checkAccess = require('../../hooks/authorization/checkAccess.js');
 const checkRoles = require('../../hooks/authorization/checkRoles.js');
 const validate = require('../../hooks/validate.js');
@@ -16,27 +15,23 @@ class User extends Service {
 const hooks = {
   before: {
     find: [
-      checkRoles('user'),
-      addAccessFilter(),
+      checkRoles('admin'),
     ],
     get: [
       checkRoles('user'),
-      checkAccess(),
+      checkAccess('id'),
     ],
     create: [
       validate(createSchema),
       hashPassword('password'),
     ],
-    update: [
-      disallow(),
-    ],
     patch: [
-      checkAccess(),
+      checkAccess('id'),
       validate(patchSchema),
       hashPassword('password'),
     ],
     remove: [
-      disallow(),
+      disallow('external'),
     ],
   },
 
@@ -47,7 +42,7 @@ const hooks = {
   },
 };
 
-module.exports = function (app) {
+module.exports = (app) => {
   const options = {
     Model: createModel(app),
     paginate: app.get('paginate'),

@@ -32,12 +32,13 @@ const hooks = {
   },
 };
 
-module.exports = function (app) {
+module.exports = (app) => {
   const sequelizeClient = app.get('sequelizeClient');
-  const User = sequelizeClient.define('user', Schema, {
+  const User = sequelizeClient.define('User', Schema, {
     hooks,
-    timestamps: true,
+    tableName: 'user',
     underscored: true,
+    timestamps: true,
   });
 
   // eslint-disable-next-line no-unused-vars

@@ -45,7 +45,7 @@ const hooks = {
   },
 };
 
-module.exports = function (app) {
+module.exports = (app) => {
   app.use('/user/:pid/roles', new UserRoles({}, app));
   const service = app.service('user/:pid/roles');
   service.hooks(hooks);

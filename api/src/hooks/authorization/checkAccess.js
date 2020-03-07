@@ -3,7 +3,7 @@ const { Forbidden } = require('@feathersjs/errors');
 const authenticate = require('../authenticate.js');
 
 /* eslint-disable no-param-reassign */
-module.exports = () => async (context) => {
+module.exports = (field = 'owner') => async (context) => {
   if (context.type !== 'before') {
     throw new Error('"checkAccess" hook must be used as a before hook');
   }
@@ -37,7 +37,7 @@ module.exports = () => async (context) => {
   const resource = await service.get(id);
   context.params.resource = resource;
 
-  if (resource.owner && resource.owner === context.params.user.id) {
+  if (resource[field] && resource[field] === context.params.user.id) {
     return context;
   }
 
