@@ -25,6 +25,9 @@ const hooks = {
       validate(createSchema),
       hashPassword('password'),
     ],
+    update: [
+      disallow(),
+    ],
     patch: [
       checkAccess('id'),
       validate(patchSchema),

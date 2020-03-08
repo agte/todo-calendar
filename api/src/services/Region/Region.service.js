@@ -1,4 +1,5 @@
 const { Service } = require('feathers-sequelize');
+const { disallow } = require('feathers-hooks-common');
 
 const checkRoles = require('../../hooks/authorization/checkRoles.js');
 
@@ -17,6 +18,9 @@ const hooks = {
     ],
     create: [
       checkRoles('admin'),
+    ],
+    update: [
+      disallow(),
     ],
     patch: [
       checkRoles('admin'),

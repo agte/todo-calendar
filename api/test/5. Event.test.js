@@ -1,76 +1,132 @@
-// const assert = require('assert');
+const assert = require('assert');
 const app = require('../src/app');
 const utils = require('./utils.js');
 
 const { expectError } = utils;
 
 const Event = app.service('event');
+const EventStatus = app.service('event/:pid/status');
 const Category = app.service('category');
 const Region = app.service('region');
-const User = app.service('user');
-const UserRole = app.service('user/:pid/roles');
 
 const testData = {
   name: 'Unknown',
   startDate: (() => {
     const now = new Date();
     now.setDate(now.getDate() + 1);
-    return now.toUTCString();
+    return now.toISOString();
   })(),
   endDate: (() => {
     const now = new Date();
     now.setDate(now.getDate() + 1);
     now.setHours(now.getHours() + 1);
-    return now.toUTCString();
+    return now.toISOString();
   })(),
-  regionId: null,
-  categoryId: null,
 };
 
-let categories;
-let regions;
-let userReader;
-let userWriter;
-let userModerator;
-
-const asReader = { provider: 'test', user: null };
-const asWriter = { provider: 'test', user: null };
-const asModerator = { provider: 'test', user: null };
+let REG_ID;
+let EV_ID;
+let EV2_ID;
 
 describe('Event', () => {
   before(async () => {
     await app.start();
 
-    categories = await Promise.all([
-      Category.create({ name: 'Праздник' }),
-      Category.create({ name: 'Совещание' }),
-      Category.create({ name: 'Крестовый поход' }),
-    ]);
-    testData.categoryId = categories[0].id;
+    const category = await Category.create({ name: 'Праздник' });
+    testData.categoryId = category.id;
 
-    regions = await Promise.all([
+    const regions = await Promise.all([
       Region.create({ name: 'Нарния' }),
       Region.create({ name: 'Мордор' }),
-      Region.create({ name: 'Дримландия' }),
     ]);
-    testData.regionId = regions[0].id;
+    REG_ID = regions[0].id;
 
-    userReader = await User.create({ email: 'reader@test.test', password: '123123' });
-    userWriter = await User.create({ email: 'writer@test.test', password: '123123' });
-    userModerator = await User.create({ email: 'moderator@test.test', password: '123123' });
-
-    await UserRole.create({ id: 'writer' }, { route: { pid: userReader.id } });
-    await UserRole.create({ id: 'moderator' }, { route: { pid: userModerator.id } });
-    userWriter = await User.get(userWriter.id);
-    userModerator = await User.get(userModerator.id);
-
-    asReader.user = userReader;
-    asWriter.user = userWriter;
-    asModerator.user = userModerator;
+    const events = await Promise.all([
+      Event.create({ ...testData, regionId: regions[0].id }),
+      Event.create({ ...testData, regionId: regions[1].id }),
+    ]);
+    EV_ID = events[0].id;
+    EV2_ID = events[1].id;
   });
 
   after(async () => app.stop());
 
-  it('create | reader | error', () => expectError(403, Event.create(testData, asReader)));
-  // ...
+  describe('Regional reader', () => {
+    let asReader;
+    before(() => {
+      asReader = {
+        provider: 'test',
+        user: {
+          id: 1,
+          roles: ['user'],
+          level: 'regional',
+          regions: [REG_ID],
+        },
+      };
+    });
+
+    it('create | own reg | error', () => expectError(403, Event.create({ ...testData, regionId: REG_ID }, asReader)));
+    it('list   | own reg | ok', async () => {
+      const events = await Event.find(asReader);
+      assert.equal(events.total, 1);
+      assert.equal(events.data[0].regionId, REG_ID);
+    });
+    it('read   | own reg | ok', async () => {
+      const event = await Event.get(EV_ID, asReader);
+      assert.ok(event);
+    });
+    it('read   | not own | error', () => expectError(403, Event.get(EV2_ID, asReader)));
+    it('update | own reg | error', () => expectError(403, Event.patch(EV_ID, { name: 'Any name' }, asReader)));
+    it('delete | own reg | error', () => expectError(403, Event.remove(EV_ID, asReader)));
+
+    describe('Event status', () => {
+      before(() => {
+        asReader.route = { pid: EV_ID };
+      });
+      it('update | own reg | error', () => expectError(403, EventStatus.update(null, { value: 'approved' }, asReader)));
+    });
+  });
+
+  describe('Regional writer', () => {
+    let asWriter;
+    before(() => {
+      asWriter = {
+        provider: 'test',
+        user: {
+          id: 1,
+          roles: ['user', 'writer'],
+          level: 'regional',
+          regions: [REG_ID],
+        },
+      };
+    });
+
+    it('create | own reg | ok', async () => {
+      const event = await Event.create({ ...testData, regionId: REG_ID }, asWriter);
+      assert.equal(event.status, 'draft');
+    });
+    it('list   | own reg | ok', async () => {
+      const events = await Event.find(asWriter);
+      assert.equal(events.total, 2);
+      assert.equal(events.data[0].regionId, REG_ID);
+    });
+    it('read   | own reg | ok', async () => {
+      const event = await Event.get(EV_ID, asWriter);
+      assert.ok(event);
+    });
+    it('read   | not own | error', () => expectError(403, Event.get(EV2_ID, asWriter)));
+    it('update | own reg | error', () => expectError(403, Event.patch(EV_ID, { name: 'Any name' }, asWriter)));
+    it('delete | own reg | error', () => expectError(403, Event.remove(EV_ID, asWriter)));
+
+    describe('Event status', () => {
+      before(() => {
+        asWriter.route = { pid: EV_ID };
+      });
+      it('update | own reg | error', () => expectError(403, EventStatus.update(null, { value: 'approved' }, asWriter)));
+    });
+  });
+
+  describe('Regional moderator', () => {
+    // ...
+  });
 });

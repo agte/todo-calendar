@@ -14,6 +14,9 @@ class UserRole {
 
   async create({ id }, { route }) {
     const user = await this.User.Model.findOne({ where: { id: route.pid } });
+    if (!user) {
+      throw new NotFound();
+    }
     if (user.roles.includes(id)) {
       throw new Conflict('Duplicate role');
     }
@@ -24,6 +27,9 @@ class UserRole {
 
   async remove(id, { route }) {
     const user = await this.User.Model.findOne({ where: { id: route.pid } });
+    if (!user) {
+      throw new NotFound();
+    }
     if (!user.roles.includes(id)) {
       throw new NotFound('Role not found');
     }

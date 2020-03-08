@@ -22,6 +22,12 @@ class UserRole {
     }
 
     const user = await this.User.Model.findOne({ where: { id: route.pid } });
+    if (!user) {
+      throw new NotFound();
+    }
+    if (user.level === 'regional' && user.regions.length === 1) {
+      throw new Conflict('Regional level allows a user to add only one region');
+    }
     if (user.regions.includes(id)) {
       throw new Conflict('Duplicate role');
     }
@@ -34,6 +40,9 @@ class UserRole {
     id = Number(id); // eslint-disable-line no-param-reassign
 
     const user = await this.User.Model.findOne({ where: { id: route.pid } });
+    if (!user) {
+      throw new NotFound();
+    }
     if (!user.regions.includes(id)) {
       throw new NotFound('Region not found');
     }
